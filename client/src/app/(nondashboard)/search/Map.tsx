@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { useAppSelector } from "@/state/redux";
@@ -7,21 +7,20 @@ import { useGetPropertiesQuery } from "@/state/api";
 import { Property } from "@/types/prismaTypes";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN as string;
+
 const Map = () => {
   const mapContainerRef = useRef(null);
   const filters = useAppSelector((state) => state.global.filters);
-  const isFiltersFullOpen = useAppSelector(
-    (state) => state.global.isFiltersFullOpen
-  );
-
   const {
     data: properties,
     isLoading,
     isError,
   } = useGetPropertiesQuery(filters);
+    console.log("🚀 ~ Map ~ properties:", properties)
 
   useEffect(() => {
     if (isLoading || isError || !properties) return;
+
     const map = new mapboxgl.Map({
       container: mapContainerRef.current!,
       style: "mapbox://styles/williamjiangofficial/cm8rr7ut3002201r2azvpe8z0",
@@ -32,7 +31,7 @@ const Map = () => {
     properties.forEach((property) => {
       const marker = createPropertyMarker(property, map);
       const markerElement = marker.getElement();
-      const path = markerElement.querySelector("path[fill=#3FB1CE]");
+      const path = markerElement.querySelector("path[fill='#3FB1CE']");
       if (path) path.setAttribute("fill", "#000000");
     });
 
@@ -42,10 +41,10 @@ const Map = () => {
     resizeMap();
 
     return () => map.remove();
-  });
+  }, [isLoading, isError, properties, filters.coordinates]);
 
-  if (isLoading) return <>Loading...</>
-  if (isError || !properties) return <div>Failed to fetch</div>
+  if (isLoading) return <>Loading...</>;
+  if (isError || !properties) return <div>Failed to fetch properties</div>;
 
   return (
     <div className="basis-5/12 grow relative rounded-xl">
@@ -57,20 +56,20 @@ const Map = () => {
           width: "100%",
         }}
       />
-      map
     </div>
   );
+};
 
-  const createPropertyMarker = (property: Property, map: mapboxgl.Map) => {
-    const marker = new mapboxgl.Marker()
-      .setLngLat([
-        property.location.coordinates.longitude,
-        property.location.coordinates.latitude,
-      ])
-      .setPopup(
-        new mapboxgl.Popup().setHTML(
-          `
-          <div class="marker-popup">
+const createPropertyMarker = (property: Property, map: mapboxgl.Map) => {
+  const marker = new mapboxgl.Marker()
+    .setLngLat([
+      property.location.coordinates.longitude,
+      property.location.coordinates.latitude,
+    ])
+    .setPopup(
+      new mapboxgl.Popup().setHTML(
+        `
+        <div class="marker-popup">
           <div class="marker-popup-image"></div>
           <div>
             <a href="/search/${property.id}" target="_blank" class="marker-popup-title">${property.name}</a>
@@ -80,11 +79,11 @@ const Map = () => {
             </p>
           </div>
         </div>
-          `
-        )
+        `
       )
-      .addTo(map);
-  };
+    )
+    .addTo(map);
+  return marker;
 };
 
 export default Map;

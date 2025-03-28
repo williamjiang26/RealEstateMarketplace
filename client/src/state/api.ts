@@ -90,14 +90,12 @@ export const api = createApi({
       }),
       invalidatesTags: (result) => [{ type: "Managers", id: result?.id }],
     }),
-
-    // property related endpoints
+    
     getProperties: build.query<
       Property[],
       Partial<FiltersState> & { favoriteIds?: number[] }
     >({
       query: (filters) => {
-        console.log("🚀 ~ filters:", filters);
         const params = cleanParams({
           location: filters.location,
           priceMin: filters.priceRange?.[0],
@@ -109,12 +107,12 @@ export const api = createApi({
           squareFeetMax: filters.squareFeet?.[1],
           amenities: filters.amenities?.join(","),
           availableFrom: filters.availableFrom,
-          // favoriteIds: filters.favoriteIds?.join(","),
+          favoriteIds: filters.favoriteIds?.join(","),
           latitude: filters.coordinates?.[1],
           longitude: filters.coordinates?.[0],
         });
 
-        return { url: "properties", filters };
+        return { url: "properties", params };
       },
       providesTags: (result) =>
         result
