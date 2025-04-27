@@ -60,16 +60,9 @@ export const updateManager = async (
       .json({ message: `Error updating manager: ${error.message}` });
   }
 };
-export const getManagerProperties = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+export const getManagerProperties = async (req: Request, res: Response) => {
   try {
     const { cognitoId } = req.params;
-    const manager = await prisma.manager.findUnique({
-      where: { cognitoId },
-    });
-
     const properties = await prisma.property.findMany({
       where: { managerCognitoId: cognitoId },
       include: {
@@ -80,7 +73,7 @@ export const getManagerProperties = async (
     const propertiesWithFormattedLocation = await Promise.all(
       properties.map(async (property) => {
         const coordinates: { coordinates: string }[] =
-          await prisma.$queryRaw`SELECT ST_asText((coordinates) as coordinates from "Location" where id = {property.location.id}`;
+          await prisma.$queryRaw`SELECT ST_asText(coordinates) as coordinates from "Location" where id = ${property.location.id}`;
 
         const geoJSON: any = wktToGeoJSON(coordinates[0]?.coordinates || "");
         const longitude = geoJSON.coordinates[0];
@@ -99,7 +92,6 @@ export const getManagerProperties = async (
       })
     );
     res.json(propertiesWithFormattedLocation);
-    
   } catch (err: any) {
     res
       .status(500)

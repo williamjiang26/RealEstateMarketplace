@@ -7,12 +7,12 @@ import {
 import multer from "multer";
 import { authMiddleware } from "../middleware/authMiddleware";
 
-const storage = multer.memoryStorage()
-const upload = multer({storage: storage})
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
 const router = express.Router();
 
-router.get("/:cognitoId", getProperty);
+router.get("/:id", getProperty);
 router.get("/", getProperties);
 router.post(
   "/",

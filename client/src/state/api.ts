@@ -24,7 +24,14 @@ export const api = createApi({
     },
   }),
   reducerPath: "api",
-  tagTypes: ["Managers", "Tenants", "Properties"],
+  tagTypes: [
+    "Managers",
+    "Tenants",
+    "Properties",
+    "PropertyDetails",
+    "Leases",
+    "Payments",
+  ],
   endpoints: (build) => ({
     getAuthUser: build.query<User, void>({
       queryFn: async (_, _queryApi, _extraoptions, fetchWithBQ) => {
@@ -67,18 +74,6 @@ export const api = createApi({
       },
     }),
 
-    updateManagerSettings: build.mutation<
-      Manager,
-      { cognitoId: string } & Partial<Manager>
-    >({
-      query: ({ cognitoId, ...updatedManager }) => ({
-        url: `managers/${cognitoId}`,
-        method: "PUT",
-        body: updatedManager,
-      }),
-      invalidatesTags: (result) => [{ type: "Managers", id: result?.id }],
-    }),
-
     getProperties: build.query<
       Property[],
       Partial<FiltersState> & { favoriteIds?: number[] }
@@ -116,6 +111,22 @@ export const api = createApi({
       },
     }),
 
+    getProperty: build.query<Property, number>({
+      query: (id) => `properties/${id}`,
+      providesTags: (result, error, id) => [{ type: "PropertyDetails", id }],
+    }),
+
+    createProperty: build.mutation<Property, FormData>({
+      query: (newProperty) => ({
+        url: `properties`,
+        method: "POST",
+        body: newProperty,
+      }),
+      invalidatesTags: (result) => [
+        { type: "Properties", id: "LIST" },
+        { type: "Managers", id: result?.manager?.id },
+      ],
+    }),
     // tenant endpoints
 
     getTenant: build.query<Tenant, string>({
@@ -126,6 +137,17 @@ export const api = createApi({
           error: "Failed to load tenant profile.",
         });
       },
+    }),
+
+    getCurrentResidences: build.query<Property[], string>({
+      query: (cognitoId) => `tenants/${cognitoId}/current-residences`,
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map(({ id }) => ({ type: "Properties" as const, id })),
+              { type: "Properties", id: "LIST" },
+            ]
+          : [{ type: "Properties", id: "LIST" }],
     }),
 
     updateTenantSettings: build.mutation<
@@ -179,6 +201,46 @@ export const api = createApi({
         });
       },
     }),
+    // manager endpoints
+
+    getManagerProperties: build.query<Property[], string>({
+      query: (cognitoId) => `managers/${cognitoId}/properties`,
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map(({ id }) => ({ type: "Properties" as const, id })),
+              { type: "Properties", id: "LIST" },
+            ]
+          : [{ type: "Properties", id: "LIST" }],
+    }),
+
+    updateManagerSettings: build.mutation<
+      Manager,
+      { cognitoId: string } & Partial<Manager>
+    >({
+      query: ({ cognitoId, ...updatedManager }) => ({
+        url: `managers/${cognitoId}`,
+        method: "PUT",
+        body: updatedManager,
+      }),
+      invalidatesTags: (result) => [{ type: "Managers", id: result?.id }],
+    }),
+
+    // lease related endpoints
+    getLeases: build.query<Lease[], number>({
+      query: () => "leases",
+      providesTags: ["Leases"],
+    }),
+
+    getPayments: build.query<Payment[], number>({
+      query: (leaseId) => `leases/${leaseId}/payments`,
+      providesTags: ["Payments"],
+    }),
+
+    getPropertyLeases: build.query<Lease[], number>({
+      query: (propertyId) => `properties/${propertyId}/leases`,
+      providesTags: ["Leases"],
+    }),
   }),
 });
 
@@ -186,8 +248,15 @@ export const {
   useGetAuthUserQuery,
   useUpdateTenantSettingsMutation,
   useGetTenantQuery,
+  useGetCurrentResidencesQuery,
+  useGetManagerPropertiesQuery,
   useUpdateManagerSettingsMutation,
   useGetPropertiesQuery,
+  useGetPropertyQuery,
   useAddFavoritePropertyMutation,
   useRemoveFavoritePropertyMutation,
+  useGetLeasesQuery,
+  useGetPaymentsQuery,
+  useGetPropertyLeasesQuery,
+  useCreatePropertyMutation,
 } = api;
