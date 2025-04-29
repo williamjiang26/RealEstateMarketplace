@@ -27,6 +27,7 @@ const Residences = () => {
   } = useGetCurrentResidencesQuery(authUser?.cognitoInfo?.userId || "", {
     skip: !authUser?.cognitoInfo?.userId,
   });
+    console.log("🚀 ~ Residences ~ currentResidences:", currentResidences)
 
   if (isLoading) return <Loading />;
   if (error) return <div>Error loading current residences</div>;
