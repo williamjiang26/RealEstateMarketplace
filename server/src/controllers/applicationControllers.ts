@@ -169,6 +169,8 @@ export const updateApplicationStatus = async (
   try {
     const { id } = req.params;
     const { status } = req.body;
+    console.log("status:", status);
+
     const application = await prisma.application.findUnique({
       where: { id: Number(id) },
       include: {
@@ -178,7 +180,7 @@ export const updateApplicationStatus = async (
     });
 
     if (!application) {
-      res.status(404).json({ message: "Application not found" });
+      res.status(404).json({ message: "Application not found." });
       return;
     }
 
@@ -196,6 +198,7 @@ export const updateApplicationStatus = async (
         },
       });
 
+      // Update the property to connect the tenant
       await prisma.property.update({
         where: { id: application.propertyId },
         data: {
@@ -205,6 +208,7 @@ export const updateApplicationStatus = async (
         },
       });
 
+      // Update the application with the new lease ID
       await prisma.application.update({
         where: { id: Number(id) },
         data: { status, leaseId: newLease.id },
@@ -215,13 +219,14 @@ export const updateApplicationStatus = async (
         },
       });
     } else {
-      // application is rejected
+      // Update the application status (for both "Denied" and other statuses)
       await prisma.application.update({
         where: { id: Number(id) },
         data: { status },
       });
     }
 
+    // Respond with the updated application details
     const updatedApplication = await prisma.application.findUnique({
       where: { id: Number(id) },
       include: {
@@ -238,4 +243,3 @@ export const updateApplicationStatus = async (
       .json({ message: `Error updating application status: ${error.message}` });
   }
 };
- 

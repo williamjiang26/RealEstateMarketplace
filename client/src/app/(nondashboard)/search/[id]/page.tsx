@@ -1,6 +1,8 @@
 "use client";
 import { useGetAuthUserQuery } from "@/state/api";
+import { useState } from "react";
 import { useParams } from "../../../../../node_modules/next/navigation";
+import ApplicationModal from "./ApplicationModal";
 import ContactWidget from "./ContactWidget";
 import ImagePreviews from "./ImagePreviews";
 import PropertyDetails from "./PropertyDetails";
@@ -10,6 +12,7 @@ import PropertyOverview from "./PropertyOverview";
 const SingleListing = () => {
   const { id } = useParams();
   const propertyId = Number(id);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const { data: authUser } = useGetAuthUserQuery();
 
   return (
@@ -23,10 +26,18 @@ const SingleListing = () => {
           <PropertyDetails propertyId={propertyId} />
           <PropertyLocation propertyId={propertyId} />
         </div>
-        <div>
-          <ContactWidget onOpenModal={ () => setIsModalOpen(true)} />
+        <div className="order-1 md:order-2">
+          <ContactWidget onOpenModal={() => setIsModalOpen(true)} />
         </div>
       </div>
+
+      {authUser && (
+        <ApplicationModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          propertyId={propertyId}
+        />
+      )}
     </div>
   );
 };
