@@ -9,7 +9,7 @@ import {
   useRemoveFavoritePropertyMutation,
 } from "@/state/api";
 import { useAppSelector } from "@/state/redux";
-
+import { Property } from "@/types/prismaTypes";
 
 const Listings = () => {
   const filters = useAppSelector((state) => state.global.filters);

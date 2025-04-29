@@ -76,7 +76,7 @@ const FiltersBar = () => {
     try {
       const response = await fetch(
         `https://api/mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
-          localFilters.location
+          filters.location
         )}.json?access_token=${
           process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
         }&fuzzyMatch=true`
